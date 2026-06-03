@@ -2,7 +2,7 @@ import uvicorn
 from starlette.applications import Starlette
 from a2a.server.request_handlers import DefaultRequestHandlerV2, DefaultRequestHandlerV2
 from a2a.server.routes import create_agent_card_routes, create_jsonrpc_routes
-from a2a.types import AgentCapabilities, AgentCard, AgentSkill
+from a2a.types import AgentCapabilities, AgentCard, AgentSkill, AgentInterface
 from a2a.server.tasks import InMemoryTaskStore
 from executor import HelloWorldAgentExecutor
 
@@ -38,6 +38,12 @@ def setup_agent_card(skill, extended_skill):
         capabilities=AgentCapabilities(
             streaming=True, extended_agent_card=True
         ),
+        supported_interfaces=[
+        AgentInterface(
+            protocol_binding='JSONRPC',
+            url='http://127.0.0.1:9999',
+        )
+        ],
         skills=[skill],  # Only the basic skill for the public card
     )
 
@@ -50,6 +56,12 @@ def setup_agent_card(skill, extended_skill):
         capabilities=AgentCapabilities(
             streaming=True, extended_agent_card=True
         ),
+        supported_interfaces=[
+        AgentInterface(
+            protocol_binding='JSONRPC',
+            url='http://127.0.0.1:9999',
+        )
+        ],
         skills=[skill, extended_skill],  # Both skills for the extended card
     )
 
@@ -75,7 +87,7 @@ def main():
 
     app = Starlette(routes=routes)
 
-    uvicorn.run(app, host='127.0.0.1', port=9999, reload=True)
+    uvicorn.run(app, host='127.0.0.1', port=9999)
 
 
 if __name__ == "__main__":
