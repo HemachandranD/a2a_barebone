@@ -55,3 +55,14 @@ class HelloWorldAgentExecutor(AgentExecutor):
                 )
             )
         )
+
+    async def cancel(self, context: RequestContext, event_queue: EventQueue) -> None:
+        await event_queue.enqueue_event(
+            TaskStatusUpdateEvent(
+                task_id=context.task_id,
+                context_id=context.context_id,
+                state=TaskStatus(
+                    state=TaskState.TASK_STATE_CANCELLED,
+                )
+            )
+        )
