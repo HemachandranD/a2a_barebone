@@ -216,3 +216,6 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# observent: local self-host clones (e.g. the Langfuse repo), never committed
+.observent/vendor/

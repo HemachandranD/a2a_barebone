@@ -71,3 +71,23 @@ Smoke test (with services running):
 ```
 python -m real_a2a.client_smoke
 ```
+
+## Observability
+
+Instrumented end-to-end with the [observent](https://github.com/anthropics/claude-code) Claude Code skill: every service's agent boundary (admin router + all three children, across CrewAI/LangGraph/Google ADK) emits OpenTelemetry traces — input/output capture, LLM spans (tokens, model, prompt/completion), and W3C trace-context propagation across the admin -> child A2A hops — fanned out to **Arize Phoenix** and **Langfuse**.
+
+- `real_a2a/shared/observent_otel.py` - shared `TracerProvider` setup + framework instrumentation.
+- `real_a2a/shared/observent_capture.py` - transport-agnostic AI-boundary capture + trace-context middleware.
+- `docker-compose.observent-phoenix.yml` - local Phoenix stack. Langfuse self-hosts via its own upstream compose (see `.observent/plan.md`).
+
+Env vars (see `.env`): `PHOENIX_COLLECTOR_ENDPOINT`, `PHOENIX_API_KEY`, `PHOENIX_PROJECT_NAME`, `LANGFUSE_BASE_URL`, `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY`.
+
+Start the backends, then the app as usual:
+
+```
+docker compose -f docker-compose.observent-phoenix.yml up -d --wait
+```
+
+Phoenix UI: `http://localhost:6006` · Langfuse UI: `http://localhost:3000`.
+
+Full spec/plan/task history lives in `.observent/`; known gaps found while wiring this up are tracked in `feedback.md`, `feedback-crewai-llm-span.md`, and `feedback-google-adk-provider.md`.

@@ -12,9 +12,11 @@ from real_a2a.children.google_adk_research.agent import invoke
 from real_a2a.shared import config
 from real_a2a.shared.a2a_server import build_agent_card, run_a2a_service
 from real_a2a.shared.executor_base import SimpleAgentExecutor
+from real_a2a.shared.observent_otel import init_observability
 
 
 def main() -> None:
+    init_observability("deepresearch")
     skill = AgentSkill(
         id="deep_research",
         name="Deep Research",

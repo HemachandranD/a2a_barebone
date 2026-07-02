@@ -1,0 +1,275 @@
+{
+  "schema_version": 1,
+  "plan_fingerprint": "sha256:1f2a3e184c177e2bdb5c9bcdd6fe1cb7570268809f8286ccc06e1c5c10fe8a43",
+  "created_at": "2026-07-02T08:40:00Z",
+  "updated_at": "2026-07-02T08:49:10Z",
+  "tasks": [
+    {
+      "id": "t01",
+      "kind": "confirm",
+      "payload": {
+        "prompt": "Apply observability setup: 3 new files, 9 edited files, 1 uv add, 2 local Docker provisions (Phoenix + Langfuse)? (yes / preview <file> / abort)",
+        "new_files": [
+          "real_a2a/shared/observent_otel.py",
+          "real_a2a/shared/observent_capture.py",
+          "docker-compose.observent-phoenix.yml"
+        ],
+        "edited_files": [
+          "real_a2a/shared/a2a_server.py",
+          "real_a2a/shared/a2a_client.py",
+          "real_a2a/admin/server.py",
+          "real_a2a/children/google_adk_research/server.py",
+          "real_a2a/children/google_adk_research/agent.py",
+          "real_a2a/children/langgraph_rag/server.py",
+          "real_a2a/children/langgraph_rag/agent.py",
+          "real_a2a/children/text2sql_crewai/server.py",
+          "real_a2a/children/text2sql_crewai/agent.py",
+          ".env"
+        ],
+        "pip_install": "uv add opentelemetry-sdk==1.41.1 opentelemetry-exporter-otlp-proto-http==1.41.1 opentelemetry-processor-baggage openinference-instrumentation-langchain==0.1.65 openinference-instrumentation-crewai==1.1.6 openinference-instrumentation-google-adk==0.1.15",
+        "env_vars": {
+          "phoenix": [
+            "PHOENIX_COLLECTOR_ENDPOINT",
+            "PHOENIX_API_KEY",
+            "PHOENIX_PROJECT_NAME"
+          ],
+          "langfuse": [
+            "LANGFUSE_HOST",
+            "LANGFUSE_PUBLIC_KEY",
+            "LANGFUSE_SECRET_KEY"
+          ]
+        },
+        "convention": "both",
+        "generated_attribute_checklist": {
+          "agent_identity_attributes": "present -- agent_name/agent_role/agent_framework passed explicitly at all 4 wrap points (admin, text2sql, rag, deepresearch)",
+          "root_span_input_and_output": "present -- every wrap point calls open_or_enrich_span (input) + capture_output (output) + set_ok/set_error"
+        },
+        "backends": [
+          {
+            "name": "phoenix",
+            "endpoint": "http://localhost:6006/v1/traces"
+          },
+          {
+            "name": "langfuse",
+            "endpoint": "http://localhost:3000/api/public/otel/v1/traces"
+          }
+        ],
+        "provisioning": [
+          {
+            "backend": "phoenix",
+            "compose_file": "docker-compose.observent-phoenix.yml",
+            "up_command": "docker compose -f docker-compose.observent-phoenix.yml up -d --wait"
+          },
+          {
+            "backend": "langfuse",
+            "up_command": "git clone --depth 1 -b main https://github.com/langfuse/langfuse.git .observent/vendor/langfuse && docker compose -f .observent/vendor/langfuse/docker-compose.yml up -d --wait"
+          }
+        ]
+      },
+      "status": "done",
+      "started_at": "2026-07-02T08:45:00Z",
+      "finished_at": "2026-07-02T08:45:00Z",
+      "error": null
+    },
+    {
+      "id": "t02",
+      "kind": "write_file",
+      "payload": {
+        "path": "real_a2a/shared/observent_otel.py",
+        "content_ref": "plan#observent_otel"
+      },
+      "status": "done",
+      "started_at": "2026-07-02T08:35:08Z",
+      "finished_at": "2026-07-02T08:35:08Z",
+      "error": null
+    },
+    {
+      "id": "t03",
+      "kind": "write_file",
+      "payload": {
+        "path": "real_a2a/shared/observent_capture.py",
+        "content_ref": "plan#observent_capture"
+      },
+      "status": "done",
+      "started_at": "2026-07-02T08:35:08Z",
+      "finished_at": "2026-07-02T08:35:08Z",
+      "error": null
+    },
+    {
+      "id": "t04",
+      "kind": "write_file",
+      "payload": {
+        "path": "docker-compose.observent-phoenix.yml",
+        "content_ref": "plan#compose_phoenix"
+      },
+      "status": "done",
+      "started_at": "2026-07-02T08:35:08Z",
+      "finished_at": "2026-07-02T08:35:08Z",
+      "error": null
+    },
+    {
+      "id": "t05",
+      "kind": "edit_file",
+      "payload": {
+        "path": "real_a2a/shared/a2a_server.py",
+        "diff_ref": "plan#a2a_server_edit"
+      },
+      "status": "done",
+      "started_at": "2026-07-02T08:35:08Z",
+      "finished_at": "2026-07-02T08:35:08Z",
+      "error": null
+    },
+    {
+      "id": "t06",
+      "kind": "edit_file",
+      "payload": {
+        "path": "real_a2a/shared/a2a_client.py",
+        "diff_ref": "plan#a2a_client_edit"
+      },
+      "status": "done",
+      "started_at": "2026-07-02T08:35:08Z",
+      "finished_at": "2026-07-02T08:35:08Z",
+      "error": null
+    },
+    {
+      "id": "t07",
+      "kind": "edit_file",
+      "payload": {
+        "path": "real_a2a/admin/server.py",
+        "diff_ref": "plan#admin_server_edit"
+      },
+      "status": "done",
+      "started_at": "2026-07-02T08:35:08Z",
+      "finished_at": "2026-07-02T08:35:08Z",
+      "error": null
+    },
+    {
+      "id": "t08",
+      "kind": "edit_file",
+      "payload": {
+        "path": "real_a2a/children/google_adk_research/server.py",
+        "diff_ref": "plan#google_adk_server_edit"
+      },
+      "status": "done",
+      "started_at": "2026-07-02T08:35:08Z",
+      "finished_at": "2026-07-02T08:35:08Z",
+      "error": null
+    },
+    {
+      "id": "t09",
+      "kind": "edit_file",
+      "payload": {
+        "path": "real_a2a/children/google_adk_research/agent.py",
+        "diff_ref": "plan#google_adk_agent_edit"
+      },
+      "status": "done",
+      "started_at": "2026-07-02T08:35:08Z",
+      "finished_at": "2026-07-02T08:35:08Z",
+      "error": null
+    },
+    {
+      "id": "t10",
+      "kind": "edit_file",
+      "payload": {
+        "path": "real_a2a/children/langgraph_rag/server.py",
+        "diff_ref": "plan#langgraph_server_edit"
+      },
+      "status": "done",
+      "started_at": "2026-07-02T08:35:08Z",
+      "finished_at": "2026-07-02T08:35:08Z",
+      "error": null
+    },
+    {
+      "id": "t11",
+      "kind": "edit_file",
+      "payload": {
+        "path": "real_a2a/children/langgraph_rag/agent.py",
+        "diff_ref": "plan#langgraph_agent_edit"
+      },
+      "status": "done",
+      "started_at": "2026-07-02T08:35:08Z",
+      "finished_at": "2026-07-02T08:35:08Z",
+      "error": null
+    },
+    {
+      "id": "t12",
+      "kind": "edit_file",
+      "payload": {
+        "path": "real_a2a/children/text2sql_crewai/server.py",
+        "diff_ref": "plan#text2sql_server_edit"
+      },
+      "status": "done",
+      "started_at": "2026-07-02T08:35:08Z",
+      "finished_at": "2026-07-02T08:35:08Z",
+      "error": null
+    },
+    {
+      "id": "t13",
+      "kind": "edit_file",
+      "payload": {
+        "path": "real_a2a/children/text2sql_crewai/agent.py",
+        "diff_ref": "plan#text2sql_agent_edit"
+      },
+      "status": "done",
+      "started_at": "2026-07-02T08:35:08Z",
+      "finished_at": "2026-07-02T08:35:08Z",
+      "error": null
+    },
+    {
+      "id": "t14",
+      "kind": "edit_file",
+      "payload": {
+        "path": ".env",
+        "diff_ref": "plan#env_edit"
+      },
+      "status": "done",
+      "started_at": "2026-07-02T08:35:08Z",
+      "finished_at": "2026-07-02T08:35:08Z",
+      "error": null
+    },
+    {
+      "id": "t15",
+      "kind": "run_command",
+      "payload": {
+        "cmd": "uv add opentelemetry-processor-baggage openinference-instrumentation-langchain openinference-instrumentation-crewai openinference-instrumentation-google-adk  # exact pins from matrix.md were stale, forced a crewai downgrade -- installed unpinned instead, see plan.md note"
+      },
+      "status": "done",
+      "started_at": "2026-07-02T08:37:42Z",
+      "finished_at": "2026-07-02T08:37:42Z",
+      "error": null
+    },
+    {
+      "id": "t16",
+      "kind": "run_command",
+      "payload": {
+        "cmd": "docker compose -f docker-compose.observent-phoenix.yml up -d --wait"
+      },
+      "status": "done",
+      "started_at": "2026-07-02T08:38:33Z",
+      "finished_at": "2026-07-02T08:38:33Z",
+      "error": null
+    },
+    {
+      "id": "t17",
+      "kind": "run_command",
+      "payload": {
+        "cmd": "git clone --depth 1 -b main https://github.com/langfuse/langfuse.git .observent/vendor/langfuse && docker compose -f .observent/vendor/langfuse/docker-compose.yml up -d --wait"
+      },
+      "status": "done",
+      "started_at": "2026-07-02T08:45:37Z",
+      "finished_at": "2026-07-02T08:45:37Z",
+      "error": null
+    },
+    {
+      "id": "t18",
+      "kind": "validate",
+      "payload": {
+        "cmd": "python \"C:/Users/sneha/.claude/plugins/cache/observent/observent/0.2.0/skills/observent/scripts/validate_setup.py\" phoenix,langfuse"
+      },
+      "status": "done",
+      "started_at": "2026-07-02T08:49:10Z",
+      "finished_at": "2026-07-02T08:49:10Z",
+      "error": "Phoenix fully validated + reachable. Langfuse infra reachable; LANGFUSE_PUBLIC_KEY/SECRET_KEY intentionally blank until user creates a project via first UI login (see self_host.md); not a setup failure."
+    }
+  ]
+}

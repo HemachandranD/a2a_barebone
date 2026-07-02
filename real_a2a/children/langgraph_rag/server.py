@@ -12,9 +12,11 @@ from real_a2a.children.langgraph_rag.agent import invoke
 from real_a2a.shared import config
 from real_a2a.shared.a2a_server import build_agent_card, run_a2a_service
 from real_a2a.shared.executor_base import SimpleAgentExecutor
+from real_a2a.shared.observent_otel import init_observability
 
 
 def main() -> None:
+    init_observability("rag")
     skill = AgentSkill(
         id="policy_rag",
         name="Company Policy RAG",

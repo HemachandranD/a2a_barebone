@@ -102,18 +102,34 @@ def _build_crew(question: str):
 
 async def invoke(query: str) -> str:
     """Turn a natural language question into a SQL query, execute it, and return results."""
-    crew = _build_crew(query)
-    generation = await crew.kickoff_async()
-    sql = _extract_sql(str(generation))
-    if not _is_read_only(sql):
-        return (
-            "Refusing to run non read-only SQL. Generated statement was:\n"
-            f"{sql}"
-        )
-    try:
-        results = _run_query(sql)
-    except Exception as exc:
-        return f"SQL failed: {exc}\n\nAttempted SQL:\n{sql}"
-    return (
-        f"SQL:\n{sql}\n\nResults (up to 50 rows):\n{results}"
-    )
+    from real_a2a.shared.observent_capture import capture_output, open_or_enrich_span, set_error, set_ok
+
+    with open_or_enrich_span(
+        {"query": query},
+        name="text2sql.run",
+        agent_name="text2sql",
+        agent_role="sql-writer",
+        agent_framework="crewai",
+    ) as span:
+        try:
+            crew = _build_crew(query)
+            generation = await crew.kickoff_async()
+            sql = _extract_sql(str(generation))
+            if not _is_read_only(sql):
+                result = (
+                    "Refusing to run non read-only SQL. Generated statement was:\n"
+                    f"{sql}"
+                )
+            else:
+                try:
+                    results = _run_query(sql)
+                    result = f"SQL:\n{sql}\n\nResults (up to 50 rows):\n{results}"
+                except Exception as exc:
+                    result = f"SQL failed: {exc}\n\nAttempted SQL:\n{sql}"
+        except BaseException as exc:
+            set_error(exc, span)
+            raise
+
+        capture_output(result, span)
+        set_ok(span)
+        return result

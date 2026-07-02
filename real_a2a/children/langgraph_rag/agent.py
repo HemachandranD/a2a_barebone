@@ -114,5 +114,21 @@ def _graph():
 
 
 async def invoke(query: str) -> str:
-    result = await _graph().ainvoke({"question": query, "chunks": [], "answer": ""})
-    return result["answer"]
+    from real_a2a.shared.observent_capture import capture_output, open_or_enrich_span, set_error, set_ok
+
+    with open_or_enrich_span(
+        {"query": query},
+        name="rag.run",
+        agent_name="rag",
+        agent_role="policy-qa",
+        agent_framework="langgraph",
+    ) as span:
+        try:
+            result = await _graph().ainvoke({"question": query, "chunks": [], "answer": ""})
+        except BaseException as exc:
+            set_error(exc, span)
+            raise
+        answer = result["answer"]
+        capture_output(answer, span)
+        set_ok(span)
+        return answer

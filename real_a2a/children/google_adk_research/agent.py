@@ -55,23 +55,39 @@ def _runner():
 async def invoke(query: str) -> str:
     from google.genai import types
 
+    from real_a2a.shared.observent_capture import capture_output, open_or_enrich_span, set_error, set_ok
+
     runner, session_service = _runner()
 
-    session = await session_service.create_session(
-        app_name=_APP_NAME, user_id=_USER_ID
-    )
-
-    content = types.Content(
-        role="user", parts=[types.Part.from_text(text=query)]
-    )
-
-    final_text = ""
-    async for event in runner.run_async(
-        user_id=_USER_ID, session_id=session.id, new_message=content
-    ):
-        if event.is_final_response() and event.content and event.content.parts:
-            final_text = "".join(
-                p.text or "" for p in event.content.parts if hasattr(p, "text")
+    with open_or_enrich_span(
+        {"query": query},
+        name="deepresearch.run",
+        agent_name="deepresearch",
+        agent_role="research-analyst",
+        agent_framework="google-adk",
+    ) as span:
+        try:
+            session = await session_service.create_session(
+                app_name=_APP_NAME, user_id=_USER_ID
             )
 
-    return final_text or "(no response)"
+            content = types.Content(
+                role="user", parts=[types.Part.from_text(text=query)]
+            )
+
+            final_text = ""
+            async for event in runner.run_async(
+                user_id=_USER_ID, session_id=session.id, new_message=content
+            ):
+                if event.is_final_response() and event.content and event.content.parts:
+                    final_text = "".join(
+                        p.text or "" for p in event.content.parts if hasattr(p, "text")
+                    )
+        except BaseException as exc:
+            set_error(exc, span)
+            raise
+
+        result = final_text or "(no response)"
+        capture_output(result, span)
+        set_ok(span)
+        return result

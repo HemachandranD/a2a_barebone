@@ -12,6 +12,8 @@ from a2a.server.routes import create_agent_card_routes, create_jsonrpc_routes
 from a2a.server.tasks import InMemoryTaskStore
 from a2a.types import AgentCapabilities, AgentCard, AgentInterface, AgentSkill
 
+from real_a2a.shared.observent_capture import TraceContextMiddleware
+
 
 def build_agent_card(
     *,
@@ -53,7 +55,9 @@ def build_a2a_app(
     routes.extend(create_jsonrpc_routes(handler, "/"))
     if extra_routes:
         routes.extend(extra_routes)
-    return Starlette(routes=routes)
+    app = Starlette(routes=routes)
+    app.add_middleware(TraceContextMiddleware)
+    return app
 
 
 def run_a2a_service(

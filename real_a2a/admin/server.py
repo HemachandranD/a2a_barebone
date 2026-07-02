@@ -12,14 +12,31 @@ from real_a2a.admin.router import route_and_call
 from real_a2a.shared import config
 from real_a2a.shared.a2a_server import build_agent_card, run_a2a_service
 from real_a2a.shared.executor_base import SimpleAgentExecutor
+from real_a2a.shared.observent_capture import capture_output, open_or_enrich_span, set_error, set_ok
+from real_a2a.shared.observent_otel import init_observability
 
 
 async def _admin_invoke(query: str) -> str:
-    target, reply = await route_and_call(query)
-    return f"[routed to: {target}]\n\n{reply}"
+    with open_or_enrich_span(
+        {"query": query},
+        name="admin.run",
+        agent_name="admin",
+        agent_role="router",
+        agent_framework="crewai",
+    ) as span:
+        try:
+            target, reply = await route_and_call(query)
+        except BaseException as exc:
+            set_error(exc, span)
+            raise
+        result = f"[routed to: {target}]\n\n{reply}"
+        capture_output(result, span)
+        set_ok(span)
+        return result
 
 
 def main() -> None:
+    init_observability("admin")
     skill = AgentSkill(
         id="admin_router",
         name="Admin Router",
