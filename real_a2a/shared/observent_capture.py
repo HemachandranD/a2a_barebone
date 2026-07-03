@@ -12,6 +12,7 @@ customize; no env-var override is read at runtime by design.
 from __future__ import annotations
 
 import functools
+import json
 from contextlib import nullcontext
 from typing import Any, Awaitable, Callable, Iterator, TypeVar
 
@@ -125,25 +126,47 @@ def _promote_baggage(attr_key: str, value: AttributeValue, ctx: context.Context)
     return baggage.set_baggage(leaf, str(value), context=ctx)
 
 
+def _serialize(payload: Any) -> tuple[str, str]:
+    """Render `payload` as a single string for `.value` / `gen_ai.*`, alongside its
+    mime type. A dict/list becomes valid JSON (`json.dumps`, not Python's `str()`,
+    which would emit repr-style single-quoted syntax); a payload that is already a
+    string passes through untouched; anything else falls back to `str()`."""
+    if isinstance(payload, str):
+        return payload, "text/plain"
+    if isinstance(payload, (dict, list, tuple)):
+        try:
+            return json.dumps(payload, default=str, ensure_ascii=False), "application/json"
+        except TypeError:
+            return str(payload), "text/plain"
+    return str(payload), "text/plain"
+
+
 def _write(span: trace.Span, namespace: str, payload: Any) -> None:
     """Flatten `payload` under `namespace` and set each leaf as a span attribute.
 
-    Also sets the OI-native `input.value` / `output.value` and, when the
-    convention calls for it, the OTel-GenAI `gen_ai.*` mirror.
+    Also sets the OI-native `input.value` / `output.value` (+ `.mime_type`) and,
+    when the convention calls for it, the OTel-GenAI `gen_ai.*` mirror.
     """
     if not span.is_recording():
         return
     ctx = context.get_current()
-    for key, val in _flatten(namespace, payload):
-        span.set_attribute(key, val)
-        ctx = _promote_baggage(key, val, ctx)
-    if ctx is not context.get_current():
-        context.attach(ctx)  # promote into the active context for child spans
+    # Only recurse into dict/list payloads for per-leaf attributes (input.query,
+    # output.reply, ...). A scalar payload (e.g. a plain-string agent output) has
+    # no leaves to flatten -- falling through to _flatten's fallback branch would
+    # yield a *bare* `namespace` key holding the same content the `.value` mirror
+    # below already carries, duplicating a potentially large string on the span.
+    if isinstance(payload, (dict, list, tuple)):
+        for key, val in _flatten(namespace, payload):
+            span.set_attribute(key, val)
+            ctx = _promote_baggage(key, val, ctx)
+        if ctx is not context.get_current():
+            context.attach(ctx)  # promote into the active context for child spans
 
     # Convention-native single-value mirrors (so each backend's UI lights up).
-    flat_str = str(payload)
+    flat_str, mime_type = _serialize(payload)
     if _CONVENTION in ("oi", "both"):
         span.set_attribute(f"{namespace}.value", flat_str)
+        span.set_attribute(f"{namespace}.mime_type", mime_type)
     if _CONVENTION in ("otel-genai", "both"):
         gen_ai_key = "gen_ai.prompt" if namespace == "input" else "gen_ai.completion"
         span.set_attribute(gen_ai_key, flat_str)

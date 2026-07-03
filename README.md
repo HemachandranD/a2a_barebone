@@ -90,4 +90,4 @@ docker compose -f docker-compose.observent-phoenix.yml up -d --wait
 
 Phoenix UI: `http://localhost:6006` · Langfuse UI: `http://localhost:3000`.
 
-Full spec/plan/task history lives in `.observent/`; known gaps found while wiring this up are tracked in `feedback.md`, `feedback-crewai-llm-span.md`, and `feedback-google-adk-provider.md`.
+Full spec/plan/task history lives in `.observent/`. For a screenshot walkthrough of the setup (skill invocation, backend provisioning, and verified traces in both Phoenix and Langfuse) plus the non-obvious gotchas found along the way, see [`OBSERVENT_WALKTHROUGH.md`](OBSERVENT_WALKTHROUGH.md).
